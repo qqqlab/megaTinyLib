@@ -1,3 +1,6 @@
+//#############################################################
+// SPI blocking driver mode0
+//#############################################################
 
 #ifndef SPI_SS_PORT
 #error "SPI_SS_PORT not defined"
@@ -10,6 +13,17 @@
 #endif
 
 #include <avr/io.h>
+
+//find out what device we have
+#if defined(_AVR_ATTINY3216_H_INCLUDED) || defined(_AVR_ATTINY1616_H_INCLUDED)
+	//attinyx16 1 series soic-20, alternate SPI port: SCK=PC0 MISO=PC1 MOSI=PC2 NSS=PC3
+	#define QQQ_ATTINYx16
+#elif defined(_AVR_ATTINY1614_H_INCLUDED) || defined(_AVR_ATTINY814_H_INCLUDED)  || defined(_AVR_ATTINY414_H_INCLUDED)
+	//attinyx14 1 series soic-14
+	#define QQQ_ATTINYx14
+#else
+	#error "unknown micro controller in qqq_spi.h"
+#endif
 
 void spi_ss()
 {
@@ -31,17 +45,28 @@ uint8_t spi_transfer(uint8_t data)
 }
 
 void spi_setup() {
-//set alternate pins (not all devices have alternate pins)
-#ifdef PORTMUX_SPI0_ALTERNATE_gc
-  #if SPI_ALTERNATE_PINS
-	  PORTMUX.CTRLB |= PORTMUX_SPI0_ALTERNATE_gc; //select alternate pins
-  #else
-	  PORTMUX.CTRLB &= ~PORTMUX_SPI0_ALTERNATE_gc; //select regular pins
-  #endif
+	//setup pins
+#if defined(QQQ_ATTINYx16) && !SPI_ALTERNATE_PINS
+	//14 pin - regular pins
+	PORTMUX.CTRLB &= ~PORTMUX_SPI0_ALTERNATE_gc; 
+	PORTA.DIRSET = PIN1_bm | PIN3_bm; //MOSI + SCK
+	PORTA.DIRCLR = PIN2_bm; //MISO
+#elif defined(QQQ_ATTINYx16) && SPI_ALTERNATE_PINS
+	//14 pin - alternate pins
+	PORTMUX.CTRLB |= PORTMUX_SPI0_ALTERNATE_gc; //select alternate pins
+	PORTC.DIRSET = PIN2_bm | PIN0_bm; //MOSI + SCK
+	PORTC.DIRCLR = PIN1_bm; //MISO
+#elif defined(QQQ_ATTINYx14)
+	//14 pin - regular pins (no alternate pins)
+	PORTA.DIRSET = PIN1_bm | PIN3_bm; //MOSI + SCK
+	PORTA.DIRCLR = PIN2_bm; //MISO     
 #endif
-	
+
+    //setup SS pin
 	SPI_SS_PORT.DIRSET = SPI_SS_PIN_bm ;
 	spi_nss();
+
+	//setup SPI
 	SPI0.CTRLA = 
 	  1 << SPI_CLK2X_bp  /* Enable Double Speed */
 	| 0 << SPI_DORD_bp   /* Data Order Setting */
@@ -62,4 +87,3 @@ void spi_setup() {
 	| 0 << SPI_SSIE_bp   /* Slave Select Trigger Interrupt Enable */
 	| 0 << SPI_TXCIE_bp; /* Transfer Complete Interrupt Enable */
 }
-
