@@ -51,7 +51,7 @@ int16_t temp_read_raw() {
 int16_t adc_temp_c() {
 	VREF.CTRLA = VREF_ADC0REFSEL_1V1_gc; //vref 1.1V
 	VREF.CTRLB = VREF_ADC0REFEN_bm;
-	//_delay_us(25); //settle vref
+	//_delay_us(25); //settle vref (not needed??)
 	ADC0.CTRLC = ADC_REFSEL_INTREF_gc | ADC_PRESC_gc | ADC_SAMPCAP_bm; //select internal vref | F_CPU/x | select normal 5 pf (0 = normal size, 1 = reduced size)
 	ADC0.MUXPOS = ADC_MUXPOS_TEMPSENSE_gc; //select temp sensor
 	ADC0.CTRLD = ADC_INITDLY_DLY32_gc; // >= 32 cycles delay
@@ -93,7 +93,7 @@ int16_t adc_temp_c() {
 int16_t adc_temp_c10() {
 	VREF.CTRLA = VREF_ADC0REFSEL_1V1_gc; //vref 1.1V
 	VREF.CTRLB = VREF_ADC0REFEN_bm;
-	//_delay_us(25); //settle vref
+	//_delay_us(25); //settle vref (not needed??)
 	ADC0.CTRLC = ADC_REFSEL_INTREF_gc | ADC_PRESC_gc | ADC_SAMPCAP_bm; //select internal vref | F_CPU/x | select normal 5 pf (0 = normal size, 1 = reduced size)
 	ADC0.MUXPOS = ADC_MUXPOS_TEMPSENSE_gc; //select temp sensor
 	ADC0.CTRLD = ADC_INITDLY_DLY32_gc; // >= 32 cycles delay
@@ -135,7 +135,6 @@ uint16_t adc_read(uint8_t channel) {
   ADC0.CTRLC = ADC_REFSEL_VDDREF_gc | ADC_PRESC_gc; // select VDD as reference | F_CPU/x
   ADC0.CTRLD = ADC_INITDLY_DLY0_gc; // 0 cycles delay
   ADC0_MUXPOS = channel;
-//  ADC0_MUXPOS = ADC_MUXPOS_AIN3_gc; //PA3
   ADC0.SAMPCTRL = 0;
 
   return adc_get_result();
